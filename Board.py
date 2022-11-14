@@ -1,3 +1,5 @@
+import re
+
 class Board:
     def __init__(self):
         w_charset = {'k':'\u2654',                                              # Unicode charsets so that the board can be printed in the terminal with cool characters
@@ -42,3 +44,19 @@ class Board:
 		
     def get_board_string(self, flipped=False):
         return self.create_board_string(flipped)
+    
+    def validate_format(self,user_input):
+         lan = r"([KQNBR]?)([a-g][1-9])([x]?)([a-g][1-9])([KQNBR]?)" #checks for valid long algebraic notation
+         if re.search(lan, user_input):
+              return re.split(lan, user_input)[1:-1] #returns components of move: piece, start, capture, end, promotion
+         
+    def validate_move(self, user_input,turn):
+         user_input_formatted = self.validate_format(user_input)
+         if not user_input_formatted:
+             return False
+	
+         piece = user_input_formatted[0].lower() or "p" #if no piece is specified, assume pawn
+         start = user_input_formatted[1]
+         capture = bool(user_input_formatted[2])
+         end = user_input_formatted[3]
+         promotion = user_input_formatted[4]
