@@ -29,7 +29,7 @@ class Board:
 		
     def create_board_string(self, flipped=False):
         output = ''
-        if flipped:
+        if not flipped:
             for row_index in range(len(self.board_state)):
                 for piece_index in range(len(self.board_state[row_index])):
                     output = output + self.board_state[row_index][piece_index] + " "
@@ -60,3 +60,20 @@ class Board:
          capture = bool(user_input_formatted[2])
          end = user_input_formatted[3]
          promotion = user_input_formatted[4]
+
+    def get_space(self,string):
+        let,num = string[0],string[1]
+        alphabet = "abcdefgh"
+        return self.board_state[alphabet.index(let)][int(num)-1]
+
+
+
+class pieces:
+    def __init__(self,colour):
+        self.colour = colour
+
+
+
+
+        
+    
