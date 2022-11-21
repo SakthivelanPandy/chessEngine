@@ -77,8 +77,11 @@ class Board:
 
 
 class pieces:
-    def __init__(self,colour):
+    def __init__(self,colour,board,pos):
         self.colour = colour
+        self.board = board
+        self.pos = pos
+        self.taken = False
 
     def check_in_bounds(self,move):
         if move[0] in "abcdefgh" and move[1] in "12345678":
@@ -86,28 +89,86 @@ class pieces:
         else:
             return False
         
-    def check_if_unobstructed(self,board,start,end):
+    def check_if_unobstructed(self,start,end):
         alphabet = "abcdefgh"
         if start[0] == end[0]:
-            for i in range(int(start[1]),int(end[1])):
-                if board.get_space(start[0]+str(i)) != ".":
+            for i in range(int(start[1])+1,int(end[1])):
+                if self.board.get_space(start[0]+str(i)) != ".":
                     return False
         elif start[1] == end[1]:
-            for i in range(alphabet.index(start[0]),alphabet.index(end[0])):
-                if board.get_space(i+start[1]) != ".":
+            for i in range(alphabet.index(start[0])+1,alphabet.index(end[0])):
+                if self.board.get_space(i+start[1]) != ".":
                     return False
         else:
+            start = alphabet[alphabet.index(start[0])+1]+str(int(start[1])+1)
             while start != end:
-                if board.get_space(start) != ".":
+                if self.board.get_space(start) != ".":
                     return False
                 start = alphabet[alphabet.index(start[0])+1]+str(int(start[1])+1)
-        return True #this is just experimental code for now, it doesn't work.
+        return True
 
 class pawn(pieces):
-    def __init__(self,colour):
-        super().__init__(colour)
+    def __init__(self,colour,board,pos):
+        super().__init__(colour,board,pos)
         self.char = "\u2659" if colour == "w" else "\u265f"
 
+    def gen_mov(self): #brace yourself for this. i wrote this myself, which is why its so messy. if you can tidy this up, please do. even i dont want to look at it.
+        moves = []
+        if self.colour == "w":
+            if self.pos[1] == "2":
+                #if on starting row, can move 2 spaces, if unobstructed
+                moves.append(self.pos+self.pos[0]+"3") if self.board.get_space(self.pos[0]+"3") == "." else None
+                moves.append(self.pos+self.pos[0]+"4") if self.board.get_space(self.pos[0]+"4") == "."  and self.board.get_space(self.pos[0]+"3") == "." else None
+            else:
+                if self.board.get_space(self.pos[0]+str(int(self.pos[1])+1)) == ".":
+                    #if the space in front is empty, can move there
+                    if self.pos[1] == "7":
+                         for i in ["Q","R","B","N"]:
+                             moves.append(self.pos + self.pos[0]+str(int(self.pos[1])+1)) #if on the last row, can promote to any peice
+                    else:
+                        moves.append(self.pos + self.pos[0]+str(int(self.pos[1])+1))
+            if self.check_in_bounds(chr(ord(self.pos[0])+1)+str(int(self.pos[1])+1)):
+                if self.board.get_space(chr(ord(self.pos[0])+1)+str(int(self.pos[1])+1)) != ".": #capture right
+                    if self.pos[1] == "7":
+                            for i in ["Q","R","B","N"]:
+                                moves.append(self.pos + "x" + chr(ord(self.pos[0])+1)+str(int(self.pos[1])+1) + i) #can promote to any piece
+                    else:
+                        moves.append(self.pos + "x" + chr(ord(self.pos[0])+1)+str(int(self.pos[1])+1))
+            if self.check_in_bounds(chr(ord(self.pos[0])-1)+str(int(self.pos[1])+1)):
+                if self.board.get_space(chr(ord(self.pos[0])-1)+str(int(self.pos[1])+1)) != ".": #capture left
+                    if self.pos[1] == "7":
+                            for i in ["Q","R","B","N"]:
+                                moves.append(self.pos + "x" + chr(ord(self.pos[0])-1)+str(int(self.pos[1])+1) + i) #can promote to any peice
+                    else:
+                        moves.append(self.pos + "x" + chr(ord(self.pos[0])-1)+str(int(self.pos[1])+1))
+        else: #same, but for black
+            if self.pos[1] == "7":
+                moves.append(self.pos+self.pos[0]+"6") if self.board.get_space(self.pos[0]+"6") == "." else None
+                moves.append(self.pos+self.pos[0]+"5") if self.board.get_space(self.pos[0]+"5") == "."  and self.board.get_space(self.pos[0]+"6") == "." else None
+            else:
+                if self.board.get_space(self.pos[0]+str(int(self.pos[1])-1)) == ".": #if the space in front is empty, can move there
+                    if self.pos[1] == "2":
+                         for i in ["Q","R","B","N"]:
+                             moves.append(self.pos + self.pos[0]+str(int(self.pos[1])-1))
+                    else:
+                        moves.append(self.pos + self.pos[0]+str(int(self.pos[1])-1))
+            if self.check_in_bounds(chr(ord(self.pos[0])+1)+str(int(self.pos[1])-1)):
+                if self.board.get_space(chr(ord(self.pos[0])+1)+str(int(self.pos[1])-1)) != ".": #capture right
+                    if self.pos[1] == "2":
+                            for i in ["Q","R","B","N"]:
+                                moves.append(self.pos + "x" + chr(ord(self.pos[0])+1)+str(int(self.pos[1])-1) + i)
+                    else:
+                        moves.append(self.pos + "x" + chr(ord(self.pos[0])+1)+str(int(self.pos[1])-1))
+            if self.check_in_bounds(chr(ord(self.pos[0])-1)+str(int(self.pos[1])-1)):
+                if self.board.get_space(chr(ord(self.pos[0])-1)+str(int(self.pos[1])-1)) != ".": #capture left
+                    if self.pos[1] == "2":
+                            for i in ["Q","R","B","N"]:
+                                moves.append(self.pos + "x" + chr(ord(self.pos[0])-1)+str(int(self.pos[1])-1) + i)
+                    else:
+                        moves.append(self.pos + "x" + chr(ord(self.pos[0])-1)+str(int(self.pos[1])-1))
+        return moves
+        #what this is meant to do is generate all the possible moves for a peice, in LAN format. This means we need to keep track of all the peices on the board as objects.7
+    #have fun deciphering this mess, Alan. I've commnented it just like you wanted me to. doing this for the other peices will be a lot easier, as they they are not different for black and white, and cannot promote. the king and checks will be a mess to code though.
 
 
 
