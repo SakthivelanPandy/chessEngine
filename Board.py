@@ -91,8 +91,8 @@ class Board:
     
     def return_moves(self):
         if self.turn:
-            return sum([piece.gen_mov() for piece in self.w_team],[])
-        return sum([piece.gen_mov() for piece in self.b_team],[])
+            return list(filter(None, sum([piece.gen_mov() for piece in self.w_team],[])))
+        return list(filter(None, sum([piece.gen_mov() for piece in self.b_team],[])))
     
     def validate_move(self,move):
         if move in self.return_moves():
@@ -101,16 +101,18 @@ class Board:
     
     def move_piece(self,move):
         if self.validate_move(move):
-            start,capture,end,promotion = re.split(r"([a-g][1-9])([x]?)([a-g][1-9])([KQNBR]?)",move)[1:-1]
+            
+            start,capture,end,promotion = re.split(r"([a-h][1-9])([x]?)([a-h][1-9])([KQNBR]?)",move)[1:-1]
+
             if self.turn:
                 for piece in self.w_team:
                     if piece.pos == start:
                         piece_to_move = piece
                 piece_to_move.pos = end
                 alphabet = "abcdefgh"
-                self.board_state[2][alphabet.index(end[0])] = piece_to_move.char
+                self.board_state[int(end[1])-1][alphabet.index(end[0])] = piece_to_move.char
                 self.board_state[int(start[1])-1][alphabet.index(start[0])] = "."
-                print(int(end[1])-1,alphabet.index(end[0]))
+                
                 
 
                 if capture:
@@ -121,15 +123,52 @@ class Board:
                 if promotion:
                     self.w_team.remove(piece)
                     if promotion == "Q":
-                        self.w_team.append(queen("w",self,end))
+                        q = queen("w",self,end)
+                        self.w_team.append(q)
+                        self.board_state[int(end[1])-1][alphabet.index(end[0])] = q.char
                     elif promotion == "R":
-                        self.w_team.append(rook("w",self,end))
+                        r = rook("w",self,end)
+                        self.w_team.append(r)
+                        self.board_state[int(end[1])-1][alphabet.index(end[0])] = r.char
                     elif promotion == "B":
-                        self.w_team.append(bishop("w",self,end))
+                        b = bishop("w",self,end)
+                        self.w_team.append(b)
+                        self.board_state[int(end[1])-1][alphabet.index(end[0])] = b.char
                     elif promotion == "N":
-                        self.w_team.append(knight("w",self,end))
-                    else:
-                        self.w_team.append(queen("w",self,end))
+                        n = knight("w",self,end)
+                        self.w_team.append(n)
+                        self.board_state[int(end[1])-1][alphabet.index(end[0])] = n.char
+            else:
+                for piece in self.b_team:
+                    if piece.pos == start:
+                        piece_to_move = piece
+                piece_to_move.pos = end
+                alphabet = "abcdefgh"
+                self.board_state[int(end[1])-1][alphabet.index(end[0])] = piece_to_move.char
+                self.board_state[int(start[1])-1][alphabet.index(start[0])] = "."
+                if capture:
+                    for piece in self.w_team:
+                        if piece.pos == end:
+                            self.w_team.remove(piece)
+                            break
+                if promotion:
+                    self.b_team.remove(piece)
+                    if promotion == "Q":
+                        q = queen("b",self,end)
+                        self.b_team.append(q)
+                        self.board_state[int(end[1])-1][alphabet.index(end[0])] = q.char
+                    elif promotion == "R":
+                        r = rook("b",self,end)
+                        self.b_team.append(r)
+                        self.board_state[int(end[1])-1][alphabet.index(end[0])] = r.char
+                    elif promotion == "B":
+                        b = bishop("b",self,end)
+                        self.b_team.append(b)
+                        self.board_state[int(end[1])-1][alphabet.index(end[0])] = b.char
+                    elif promotion == "N":
+                        n = knight("b",self,end)
+                        self.b_team.append(n)
+                        self.board_state[int(end[1])-1][alphabet.index(end[0])] = n.char
                 
             self.turn = not self.turn
             return True
