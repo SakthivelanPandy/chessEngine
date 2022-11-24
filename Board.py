@@ -15,8 +15,10 @@ class Board:
                      'n':'\u265e',
                      'p':'\u265f'}
         
-        self.w_charset = w_charset
+        self.w_charset = w_charset #needed to do this for code later on
         self.b_charset = b_charset
+
+        self.turn = True # True = white, False = black
         
         pieceArrangement = ["r","n","b","q","k","b","n","r"]
         pawns = ["p" for p in range(8)]
@@ -67,12 +69,12 @@ class Board:
          promotion = user_input_formatted[4]
 
          if self.get_space(start) == char_set[piece]:
-                return True #haven't finished this function yet
+                return True #haven't finished this function yet, actually i think this might be completely useless, but im not going to delete this juts yet in case i need it later
 
     def get_space(self,string):
         let,num = string[0],string[1]
         alphabet = "abcdefgh"
-        return self.board_state[int(num)-1][alphabet.index(let)]
+        return self.board_state[int(num)-1][alphabet.index(let)] #returns the piece at the given space, pretty self explanatory
 
 
 
@@ -82,8 +84,11 @@ class pieces:
         self.board = board
         self.pos = pos
         self.taken = False
-        self.b_chars = ["♖", "♘", "♗", "♕", "♔", "♙" ]
+        self.b_chars = ["♖", "♘", "♗", "♕", "♔", "♙" ] #this is needed because of the stupid way i wrote the move generation
         self.w_chars = ["♜", "♞", "♝", "♛", "♚", "♟" ]
+
+    def __str__(self):
+        return self.char
 
     def check_in_bounds(self,move):
         if move[0] in "abcdefgh" and move[1] in "12345678":
@@ -93,15 +98,15 @@ class pieces:
         
     def check_if_unobstructed(self,start,end):
         alphabet = "abcdefgh"
-        if start[0] == end[0]:
+        if start[0] == end[0]:#if on the same row
             for i in range(int(start[1])+1,int(end[1])):
                 if self.board.get_space(start[0]+str(i)) != ".":
                     return False
-        elif start[1] == end[1]:
+        elif start[1] == end[1]:#if on the same column
             for i in range(alphabet.index(start[0])+1,alphabet.index(end[0])):
                 if self.board.get_space(i+start[1]) != ".":
                     return False
-        else:
+        else:#if moving diagonally
             start = alphabet[alphabet.index(start[0])+1]+str(int(start[1])+1)
             while start != end:
                 if self.board.get_space(start) != ".":
@@ -112,7 +117,7 @@ class pieces:
 class pawn(pieces):
     def __init__(self,colour,board,pos):
         super().__init__(colour,board,pos)
-        self.char = "\u2659" if colour == "w" else "\u265f"
+        self.char = "\u2659" if colour == "b" else "\u265f"
 
     def gen_mov(self): #brace yourself for this. i wrote this myself, which is why its so messy. if you can tidy this up, please do. even i dont want to look at it.
         moves = []
@@ -175,12 +180,12 @@ class pawn(pieces):
 class rook(pieces):
     def __init__(self, colour, pos, board):
         super().__init__(colour, pos, board)
-        self.char = "\u2656" if self.colour == "w" else "\u265C"
+        self.char = "\u2656" if self.colour == "b" else "\u265C"
         self.op_team = self.b_chars if self.colour == "w" else self.w_chars
 
     def gen_mov(self):
         moves = []
-        for i in range(1,8):
+        for i in range(1,8):#moving right
             if self.check_in_bounds(chr(ord(self.pos[0])+i)+self.pos[1]):
                 if self.board.get_space(chr(ord(self.pos[0])+i)+self.pos[1]) == ".":
                     moves.append("R" + self.pos + chr(ord(self.pos[0])+i)+self.pos[1])
@@ -191,7 +196,7 @@ class rook(pieces):
                     break
             else:
                 break
-        for i in range(1,8):
+        for i in range(1,8):#moving left
             if self.check_in_bounds(chr(ord(self.pos[0])-i)+self.pos[1]):
                 if self.board.get_space(chr(ord(self.pos[0])-i)+self.pos[1]) == ".":
                     moves.append("R" + self.pos + chr(ord(self.pos[0])-i)+self.pos[1])
@@ -202,7 +207,7 @@ class rook(pieces):
                     break
             else:
                 break
-        for i in range(1,8):
+        for i in range(1,8):#moving up
             if self.check_in_bounds(self.pos[0]+str(int(self.pos[1])+i)):
                 if self.board.get_space(self.pos[0]+str(int(self.pos[1])+i)) == ".":
                     moves.append("R" + self.pos + self.pos[0]+str(int(self.pos[1])+i))
@@ -213,7 +218,7 @@ class rook(pieces):
                     break
             else:
                 break
-        for i in range(1,8):
+        for i in range(1,8):#moving down
             if self.check_in_bounds(self.pos[0]+str(int(self.pos[1])-i)):
                 if self.board.get_space(self.pos[0]+str(int(self.pos[1])-i)) == ".":
                     moves.append("R" + self.pos + self.pos[0]+str(int(self.pos[1])-i))
@@ -229,12 +234,12 @@ class rook(pieces):
 class bishop(pieces):
     def __init__(self, colour, pos, board):
         super().__init__(colour, pos, board)
-        self.char = "\u2657" if self.colour == "w" else "\u265D"
+        self.char = "\u2657" if self.colour == "b" else "\u265D"
         self.op_team = self.b_chars if self.colour == "w" else self.w_chars
 
     def gen_mov(self):
         moves = []
-        for i in range(1,8):
+        for i in range(1,8): #you can gather how this works
             if self.check_in_bounds(chr(ord(self.pos[0])+i)+str(int(self.pos[1])+i)):
                 if self.board.get_space(chr(ord(self.pos[0])+i)+str(int(self.pos[1])+i)) == ".":
                     moves.append("B" + self.pos + chr(ord(self.pos[0])+i)+str(int(self.pos[1])+i))
@@ -283,12 +288,12 @@ class bishop(pieces):
 class queen(pieces):
     def __init__(self, colour, pos, board):
         super().__init__(colour, pos, board)
-        self.char = "\u2655" if self.colour == "w" else "\u265B"
+        self.char = "\u2655" if self.colour == "b" else "\u265B"
         self.op_team = self.b_chars if self.colour == "w" else self.w_chars
 
     def gen_mov(self):
         moves = []
-        for i in range(1,8):
+        for i in range(1,8): #you can gather how this works
             if self.check_in_bounds(chr(ord(self.pos[0])+i)+str(int(self.pos[1])+i)):
                 if self.board.get_space(chr(ord(self.pos[0])+i)+str(int(self.pos[1])+i)) == ".":
                     moves.append("Q" + self.pos + chr(ord(self.pos[0])+i)+str(int(self.pos[1])+i))
@@ -381,11 +386,11 @@ class queen(pieces):
 class knight(pieces):
     def __init__(self,colour,pos,board):
         super().__init__(colour,pos,board)
-        self.char = "\u2658" if self.colour == "w" else "\u265E"
+        self.char = "\u2658" if self.colour == "b" else "\u265E"
         self.op_team = self.b_chars if self.colour == "w" else self.w_chars
 
     def gen_mov(self):
-        moves = []
+        moves = []#once again, you should be able to gather how this works. there was probably a much wasier way of doing all this, but this is what ive got for you.
         if self.check_in_bounds(chr(ord(self.pos[0])+1)+str(int(self.pos[1])+2)):
             if self.board.get_space(chr(ord(self.pos[0])+1)+str(int(self.pos[1])+2)) == ".":
                 moves.append("N" + self.pos + chr(ord(self.pos[0])+1)+str(int(self.pos[1])+2))
@@ -431,11 +436,11 @@ class knight(pieces):
 class king(pieces):
     def __init__(self,colour,pos,board):
         super().__init__(colour,pos,board)
-        self.char = "\u2654" if self.colour == "w" else "\u265A"
+        self.char = "\u2654" if self.colour == "b" else "\u265A"
         self.op_team = self.b_chars if self.colour == "w" else self.w_chars
 
     def gen_mov(self):
-        moves = []
+        moves = [] #for now, the king can move into check. what i plan on doing is chekcing if the king is in check  after any move, and if it is, then the move is not valid. this way,we will only have to check for check once, and not anywhere else.
         if self.check_in_bounds(chr(ord(self.pos[0])+1)+str(int(self.pos[1]))):
             if self.board.get_space(chr(ord(self.pos[0])+1)+str(int(self.pos[1]))) == ".":
                 moves.append("K" + self.pos + chr(ord(self.pos[0])+1)+str(int(self.pos[1])))

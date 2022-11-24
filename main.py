@@ -8,6 +8,7 @@ def main():
   print(game_board.create_board_string())
 
   k = king("w",game_board,"d3")
+  print(k)
   print(k.gen_mov())
 
 
