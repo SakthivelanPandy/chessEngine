@@ -1,15 +1,19 @@
 from Board import *
+import random, os
 
 
 
 def main():
   game_board = Board()
-  print(game_board.get_space("a1"))
   print(game_board.create_board_string())
+  for i in range(50):
+    r = random.choice(game_board.return_moves())
+    game_board.move_piece(r)
+    print(game_board.create_board_string())
+    input()
+    os.system('cls' if os.name == 'nt' else 'clear')
 
-  k = king("w",game_board,"d3")
-  print(k)
-  print(k.gen_mov())
+  
 
 
 if __name__ == '__main__':

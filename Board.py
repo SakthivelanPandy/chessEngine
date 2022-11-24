@@ -23,13 +23,52 @@ class Board:
         pieceArrangement = ["r","n","b","q","k","b","n","r"]
         pawns = ["p" for p in range(8)]
         blank = ["." for i in range(8)]
-        self.board_state = []
-        self.board_state.append([b_charset[piece] for piece in pieceArrangement])
-        self.board_state.append([b_charset[pawn] for pawn in pawns])
+        self.board_state = [[] for i in range(8)]
+        self.board_state[0] = [b_charset[piece] for piece in pieceArrangement]
+        self.board_state[1] = [b_charset[pawn] for pawn in pawns]
         for i in range(4):
-            self.board_state.append(blank)
-        self.board_state.append([w_charset[pawn] for pawn in pawns])                #Set before the piece arrangement so that the pawns are in the correct order
-        self.board_state.append([w_charset[piece] for piece in pieceArrangement])
+            self.board_state[i+2] = [".",".",".",".",".",".",".","."]
+        self.board_state[6] = [w_charset[pawn] for pawn in pawns]            #Set before the piece arrangement so that the pawns are in the correct order
+        self.board_state[7] = [w_charset[piece] for piece in pieceArrangement]
+
+        wp1 = pawn("w",self,"a2")
+        wp2 = pawn("w",self,"b2")
+        wp3 = pawn("w",self,"c2")
+        wp4 = pawn("w",self,"d2")
+        wp5 = pawn("w",self,"e2")
+        wp6 = pawn("w",self,"f2")
+        wp7 = pawn("w",self,"g2")
+        wp8 = pawn("w",self,"h2")
+        wr1 = rook("w",self,"a1")
+        wr2 = rook("w",self,"h1")
+        wn1 = knight("w",self,"b1")
+        wn2 = knight("w",self,"g1")
+        wb1 = bishop("w",self,"c1")
+        wb2 = bishop("w",self,"f1")
+        wq = queen("w",self,"d1")
+        wk = king("w",self,"e1")
+
+        bp1 = pawn("b",self,"a7")
+        bp2 = pawn("b",self,"b7")
+        bp3 = pawn("b",self,"c7")
+        bp4 = pawn("b",self,"d7")
+        bp5 = pawn("b",self,"e7")
+        bp6 = pawn("b",self,"f7")
+        bp7 = pawn("b",self,"g7")
+        bp8 = pawn("b",self,"h7")
+        br1 = rook("b",self,"a8")
+        br2 = rook("b",self,"h8")
+        bn1 = knight("b",self,"b8")
+        bn2 = knight("b",self,"g8")
+        bb1 = bishop("b",self,"c8")
+        bb2 = bishop("b",self,"f8")
+        bq = queen("b",self,"d8")
+        bk = king("b",self,"e8")
+
+        self.w_team = [wp1,wp2,wp3,wp4,wp5,wp6,wp7,wp8,wr1,wr2,wn1,wn2,wb1,wb2,wq,wk]
+        self.b_team = [bp1,bp2,bp3,bp4,bp5,bp6,bp7,bp8,br1,br2,bn1,bn2,bb1,bb2,bq,bk]
+
+        
         
 		
     def create_board_string(self, flipped=False):
@@ -50,26 +89,90 @@ class Board:
     def get_board_string(self, flipped=False):
         return self.create_board_string(flipped)
     
-    def validate_format(self,user_input):
-         lan = r"([KQNBR]?)([a-g][1-9])([x]?)([a-g][1-9])([KQNBR]?)" #checks for valid long algebraic notation
-         if re.search(lan, user_input):
-              return re.split(lan, user_input)[1:-1] #returns components of move: piece, start, capture, end, promotion
-         
-    def validate_move(self, user_input,turn):
-         user_input_formatted = self.validate_format(user_input)
-         if not user_input_formatted:
-             return False
-         
-         char_set = self.w_charset if turn == "w" else self.b_charset
-	
-         piece = user_input_formatted[0].lower() or "p" #if no piece is specified, assume pawn
-         start = user_input_formatted[1]
-         capture = bool(user_input_formatted[2])
-         end = user_input_formatted[3]
-         promotion = user_input_formatted[4]
+    def return_moves(self):
+        if self.turn:
+            return list(filter(None, sum([piece.gen_mov() for piece in self.w_team],[])))
+        return list(filter(None, sum([piece.gen_mov() for piece in self.b_team],[])))
+    
+    def validate_move(self,move):
+        if move in self.return_moves():
+            return True
+        return False
+    
+    def move_piece(self,move):
+        if self.validate_move(move):
+            
+            start,capture,end,promotion = re.split(r"([a-h][1-9])([x]?)([a-h][1-9])([KQNBR]?)",move)[1:-1]
 
-         if self.get_space(start) == char_set[piece]:
-                return True #haven't finished this function yet, actually i think this might be completely useless, but im not going to delete this juts yet in case i need it later
+            if self.turn:
+                for piece in self.w_team:
+                    if piece.pos == start:
+                        piece_to_move = piece
+                piece_to_move.pos = end
+                alphabet = "abcdefgh"
+                self.board_state[int(end[1])-1][alphabet.index(end[0])] = piece_to_move.char
+                self.board_state[int(start[1])-1][alphabet.index(start[0])] = "."
+                
+                
+
+                if capture:
+                    for piece in self.b_team:
+                        if piece.pos == end:
+                            self.b_team.remove(piece)
+                            break
+                if promotion:
+                    self.w_team.remove(piece)
+                    if promotion == "Q":
+                        q = queen("w",self,end)
+                        self.w_team.append(q)
+                        self.board_state[int(end[1])-1][alphabet.index(end[0])] = q.char
+                    elif promotion == "R":
+                        r = rook("w",self,end)
+                        self.w_team.append(r)
+                        self.board_state[int(end[1])-1][alphabet.index(end[0])] = r.char
+                    elif promotion == "B":
+                        b = bishop("w",self,end)
+                        self.w_team.append(b)
+                        self.board_state[int(end[1])-1][alphabet.index(end[0])] = b.char
+                    elif promotion == "N":
+                        n = knight("w",self,end)
+                        self.w_team.append(n)
+                        self.board_state[int(end[1])-1][alphabet.index(end[0])] = n.char
+            else:
+                for piece in self.b_team:
+                    if piece.pos == start:
+                        piece_to_move = piece
+                piece_to_move.pos = end
+                alphabet = "abcdefgh"
+                self.board_state[int(end[1])-1][alphabet.index(end[0])] = piece_to_move.char
+                self.board_state[int(start[1])-1][alphabet.index(start[0])] = "."
+                if capture:
+                    for piece in self.w_team:
+                        if piece.pos == end:
+                            self.w_team.remove(piece)
+                            break
+                if promotion:
+                    self.b_team.remove(piece)
+                    if promotion == "Q":
+                        q = queen("b",self,end)
+                        self.b_team.append(q)
+                        self.board_state[int(end[1])-1][alphabet.index(end[0])] = q.char
+                    elif promotion == "R":
+                        r = rook("b",self,end)
+                        self.b_team.append(r)
+                        self.board_state[int(end[1])-1][alphabet.index(end[0])] = r.char
+                    elif promotion == "B":
+                        b = bishop("b",self,end)
+                        self.b_team.append(b)
+                        self.board_state[int(end[1])-1][alphabet.index(end[0])] = b.char
+                    elif promotion == "N":
+                        n = knight("b",self,end)
+                        self.b_team.append(n)
+                        self.board_state[int(end[1])-1][alphabet.index(end[0])] = n.char
+                
+            self.turn = not self.turn
+            return True
+        return False
 
     def get_space(self,string):
         let,num = string[0],string[1]
@@ -91,7 +194,7 @@ class pieces:
         return self.char
 
     def check_in_bounds(self,move):
-        if move[0] in "abcdefgh" and move[1] in "12345678":
+        if len(move) == 2 and move[0] in "abcdefgh" and move[1] in "12345678":
             return True
         else:
             return False
@@ -178,8 +281,8 @@ class pawn(pieces):
     #have fun deciphering this mess, Alan. I've commnented it just like you wanted me to. doing this for the other peices will be a lot easier, as they they are not different for black and white, and cannot promote. the king and checks will be a mess to code though.
 
 class rook(pieces):
-    def __init__(self, colour, pos, board):
-        super().__init__(colour, pos, board)
+    def __init__(self, colour, board, pos):
+        super().__init__(colour,board, pos)
         self.char = "\u2656" if self.colour == "b" else "\u265C"
         self.op_team = self.b_chars if self.colour == "w" else self.w_chars
 
@@ -232,8 +335,8 @@ class rook(pieces):
         return moves
     
 class bishop(pieces):
-    def __init__(self, colour, pos, board):
-        super().__init__(colour, pos, board)
+    def __init__(self, colour, board, pos):
+        super().__init__(colour,board,pos)
         self.char = "\u2657" if self.colour == "b" else "\u265D"
         self.op_team = self.b_chars if self.colour == "w" else self.w_chars
 
@@ -286,8 +389,8 @@ class bishop(pieces):
         return moves
     
 class queen(pieces):
-    def __init__(self, colour, pos, board):
-        super().__init__(colour, pos, board)
+    def __init__(self, colour,board,pos):
+        super().__init__(colour, board,pos)
         self.char = "\u2655" if self.colour == "b" else "\u265B"
         self.op_team = self.b_chars if self.colour == "w" else self.w_chars
 
@@ -384,8 +487,8 @@ class queen(pieces):
         return moves
     
 class knight(pieces):
-    def __init__(self,colour,pos,board):
-        super().__init__(colour,pos,board)
+    def __init__(self,colour,board,pos):
+        super().__init__(colour,board,pos)
         self.char = "\u2658" if self.colour == "b" else "\u265E"
         self.op_team = self.b_chars if self.colour == "w" else self.w_chars
 
@@ -434,8 +537,8 @@ class knight(pieces):
         return moves
     
 class king(pieces):
-    def __init__(self,colour,pos,board):
-        super().__init__(colour,pos,board)
+    def __init__(self,colour,board,pos):
+        super().__init__(colour,board,pos)
         self.char = "\u2654" if self.colour == "b" else "\u265A"
         self.op_team = self.b_chars if self.colour == "w" else self.w_chars
 
