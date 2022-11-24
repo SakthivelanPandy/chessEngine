@@ -4,12 +4,10 @@ from Board import *
 
 def main():
   game_board = Board()
-  print(game_board.get_space("a1"))
   print(game_board.create_board_string())
-
-  k = king("w",game_board,"d3")
-  print(k)
-  print(k.gen_mov())
+  game_board.move_piece("Nb1c3")
+  print(game_board.create_board_string())
+  print([i.pos for i in game_board.w_team])
 
 
 if __name__ == '__main__':
