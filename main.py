@@ -1,4 +1,4 @@
-from Board import Board, pieces, pawn
+from Board import *
 
 
 
@@ -7,8 +7,8 @@ def main():
   print(game_board.get_space("a1"))
   print(game_board.create_board_string())
 
-  p = pawn("w",game_board,"a7")
-  print(p.gen_mov())
+  k = king("w",game_board,"d3")
+  print(k.gen_mov())
 
 
 if __name__ == '__main__':

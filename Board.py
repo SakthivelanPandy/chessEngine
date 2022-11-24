@@ -82,6 +82,8 @@ class pieces:
         self.board = board
         self.pos = pos
         self.taken = False
+        self.b_chars = ["♖", "♘", "♗", "♕", "♔", "♙" ]
+        self.w_chars = ["♜", "♞", "♝", "♛", "♚", "♟" ]
 
     def check_in_bounds(self,move):
         if move[0] in "abcdefgh" and move[1] in "12345678":
@@ -128,14 +130,14 @@ class pawn(pieces):
                     else:
                         moves.append(self.pos + self.pos[0]+str(int(self.pos[1])+1))
             if self.check_in_bounds(chr(ord(self.pos[0])+1)+str(int(self.pos[1])+1)):
-                if self.board.get_space(chr(ord(self.pos[0])+1)+str(int(self.pos[1])+1)) != ".": #capture right
+                if self.board.get_space(chr(ord(self.pos[0])+1)+str(int(self.pos[1])+1)) in self.b_chars : #capture right
                     if self.pos[1] == "7":
                             for i in ["Q","R","B","N"]:
                                 moves.append(self.pos + "x" + chr(ord(self.pos[0])+1)+str(int(self.pos[1])+1) + i) #can promote to any piece
                     else:
                         moves.append(self.pos + "x" + chr(ord(self.pos[0])+1)+str(int(self.pos[1])+1))
             if self.check_in_bounds(chr(ord(self.pos[0])-1)+str(int(self.pos[1])+1)):
-                if self.board.get_space(chr(ord(self.pos[0])-1)+str(int(self.pos[1])+1)) != ".": #capture left
+                if self.board.get_space(chr(ord(self.pos[0])-1)+str(int(self.pos[1])+1)) in self.b_chars: #capture left
                     if self.pos[1] == "7":
                             for i in ["Q","R","B","N"]:
                                 moves.append(self.pos + "x" + chr(ord(self.pos[0])-1)+str(int(self.pos[1])+1) + i) #can promote to any peice
@@ -153,14 +155,14 @@ class pawn(pieces):
                     else:
                         moves.append(self.pos + self.pos[0]+str(int(self.pos[1])-1))
             if self.check_in_bounds(chr(ord(self.pos[0])+1)+str(int(self.pos[1])-1)):
-                if self.board.get_space(chr(ord(self.pos[0])+1)+str(int(self.pos[1])-1)) != ".": #capture right
+                if self.board.get_space(chr(ord(self.pos[0])+1)+str(int(self.pos[1])-1)) in self.w_chars: #capture right
                     if self.pos[1] == "2":
                             for i in ["Q","R","B","N"]:
                                 moves.append(self.pos + "x" + chr(ord(self.pos[0])+1)+str(int(self.pos[1])-1) + i)
                     else:
                         moves.append(self.pos + "x" + chr(ord(self.pos[0])+1)+str(int(self.pos[1])-1))
             if self.check_in_bounds(chr(ord(self.pos[0])-1)+str(int(self.pos[1])-1)):
-                if self.board.get_space(chr(ord(self.pos[0])-1)+str(int(self.pos[1])-1)) != ".": #capture left
+                if self.board.get_space(chr(ord(self.pos[0])-1)+str(int(self.pos[1])-1)) in self.w_chars: #capture left
                     if self.pos[1] == "2":
                             for i in ["Q","R","B","N"]:
                                 moves.append(self.pos + "x" + chr(ord(self.pos[0])-1)+str(int(self.pos[1])-1) + i)
@@ -170,7 +172,308 @@ class pawn(pieces):
         #what this is meant to do is generate all the possible moves for a peice, in LAN format. This means we need to keep track of all the peices on the board as objects.7
     #have fun deciphering this mess, Alan. I've commnented it just like you wanted me to. doing this for the other peices will be a lot easier, as they they are not different for black and white, and cannot promote. the king and checks will be a mess to code though.
 
+class rook(pieces):
+    def __init__(self, colour, pos, board):
+        super().__init__(colour, pos, board)
+        self.char = "\u2656" if self.colour == "w" else "\u265C"
+        self.op_team = self.b_chars if self.colour == "w" else self.w_chars
 
-
-        
+    def gen_mov(self):
+        moves = []
+        for i in range(1,8):
+            if self.check_in_bounds(chr(ord(self.pos[0])+i)+self.pos[1]):
+                if self.board.get_space(chr(ord(self.pos[0])+i)+self.pos[1]) == ".":
+                    moves.append("R" + self.pos + chr(ord(self.pos[0])+i)+self.pos[1])
+                elif self.board.get_space(chr(ord(self.pos[0])+i)+self.pos[1]) in self.op_team:
+                    moves.append("R" + self.pos + "x" + chr(ord(self.pos[0])+i)+self.pos[1])
+                    break
+                else:
+                    break
+            else:
+                break
+        for i in range(1,8):
+            if self.check_in_bounds(chr(ord(self.pos[0])-i)+self.pos[1]):
+                if self.board.get_space(chr(ord(self.pos[0])-i)+self.pos[1]) == ".":
+                    moves.append("R" + self.pos + chr(ord(self.pos[0])-i)+self.pos[1])
+                elif self.board.get_space(chr(ord(self.pos[0])-i)+self.pos[1]) in self.op_team:
+                    moves.append("R" + self.pos + "x" + chr(ord(self.pos[0])-i)+self.pos[1])
+                    break
+                else:
+                    break
+            else:
+                break
+        for i in range(1,8):
+            if self.check_in_bounds(self.pos[0]+str(int(self.pos[1])+i)):
+                if self.board.get_space(self.pos[0]+str(int(self.pos[1])+i)) == ".":
+                    moves.append("R" + self.pos + self.pos[0]+str(int(self.pos[1])+i))
+                elif self.board.get_space(self.pos[0]+str(int(self.pos[1])+i)) in self.op_team:
+                    moves.append("R" + self.pos + "x" + self.pos[0]+str(int(self.pos[1])+i))
+                    break
+                else:
+                    break
+            else:
+                break
+        for i in range(1,8):
+            if self.check_in_bounds(self.pos[0]+str(int(self.pos[1])-i)):
+                if self.board.get_space(self.pos[0]+str(int(self.pos[1])-i)) == ".":
+                    moves.append("R" + self.pos + self.pos[0]+str(int(self.pos[1])-i))
+                elif self.board.get_space(self.pos[0]+str(int(self.pos[1])-i)) in self.op_team:
+                    moves.append("R" + self.pos + "x" + self.pos[0]+str(int(self.pos[1])-i))
+                    break
+                else:
+                    break
+            else:
+                break
+        return moves
     
+class bishop(pieces):
+    def __init__(self, colour, pos, board):
+        super().__init__(colour, pos, board)
+        self.char = "\u2657" if self.colour == "w" else "\u265D"
+        self.op_team = self.b_chars if self.colour == "w" else self.w_chars
+
+    def gen_mov(self):
+        moves = []
+        for i in range(1,8):
+            if self.check_in_bounds(chr(ord(self.pos[0])+i)+str(int(self.pos[1])+i)):
+                if self.board.get_space(chr(ord(self.pos[0])+i)+str(int(self.pos[1])+i)) == ".":
+                    moves.append("B" + self.pos + chr(ord(self.pos[0])+i)+str(int(self.pos[1])+i))
+                elif self.board.get_space(chr(ord(self.pos[0])+i)+str(int(self.pos[1])+i)) in self.op_team:
+                    moves.append("B" + self.pos + "x" + chr(ord(self.pos[0])+i)+str(int(self.pos[1])+i))
+                    break
+                else:
+                    break
+            else:
+                break
+        for i in range(1,8):
+            if self.check_in_bounds(chr(ord(self.pos[0])-i)+str(int(self.pos[1])-i)):
+                if self.board.get_space(chr(ord(self.pos[0])-i)+str(int(self.pos[1])-i)) == ".":
+                    moves.append("B" + self.pos + chr(ord(self.pos[0])-i)+str(int(self.pos[1])-i))
+                elif self.board.get_space(chr(ord(self.pos[0])-i)+str(int(self.pos[1])-i)) in self.op_team:
+                    moves.append("B" + self.pos + "x" + chr(ord(self.pos[0])-i)+str(int(self.pos[1])-i))
+                    break
+                else:
+                    break
+            else:
+                break
+        for i in range(1,8):
+            if self.check_in_bounds(chr(ord(self.pos[0])+i)+str(int(self.pos[1])-i)):
+                if self.board.get_space(chr(ord(self.pos[0])+i)+str(int(self.pos[1])-i)) == ".":
+                    moves.append("B" + self.pos + chr(ord(self.pos[0])+i)+str(int(self.pos[1])-i))
+                elif self.board.get_space(chr(ord(self.pos[0])+i)+str(int(self.pos[1])-i)) in self.op_team:
+                    moves.append("B" + self.pos + "x" + chr(ord(self.pos[0])+i)+str(int(self.pos[1])-i))
+                    break
+                else:
+                    break
+            else:
+                break
+        for i in range(1,8):
+            if self.check_in_bounds(chr(ord(self.pos[0])-i)+str(int(self.pos[1])+i)):
+                if self.board.get_space(chr(ord(self.pos[0])-i)+str(int(self.pos[1])+i)) == ".":
+                    moves.append("B" + self.pos + chr(ord(self.pos[0])-i)+str(int(self.pos[1])+i))
+                elif self.board.get_space(chr(ord(self.pos[0])-i)+str(int(self.pos[1])+i)) in self.op_team:
+                    moves.append("B" + self.pos + "x" + chr(ord(self.pos[0])-i)+str(int(self.pos[1])+i))
+                    break
+                else:
+                    break
+            else:
+                break
+        return moves
+    
+class queen(pieces):
+    def __init__(self, colour, pos, board):
+        super().__init__(colour, pos, board)
+        self.char = "\u2655" if self.colour == "w" else "\u265B"
+        self.op_team = self.b_chars if self.colour == "w" else self.w_chars
+
+    def gen_mov(self):
+        moves = []
+        for i in range(1,8):
+            if self.check_in_bounds(chr(ord(self.pos[0])+i)+str(int(self.pos[1])+i)):
+                if self.board.get_space(chr(ord(self.pos[0])+i)+str(int(self.pos[1])+i)) == ".":
+                    moves.append("Q" + self.pos + chr(ord(self.pos[0])+i)+str(int(self.pos[1])+i))
+                elif self.board.get_space(chr(ord(self.pos[0])+i)+str(int(self.pos[1])+i)) in self.op_team:
+                    moves.append("Q" + self.pos + "x" + chr(ord(self.pos[0])+i)+str(int(self.pos[1])+i))
+                    break
+                else:
+                    break
+            else:
+                break
+        for i in range(1,8):
+            if self.check_in_bounds(chr(ord(self.pos[0])-i)+str(int(self.pos[1])-i)):
+                if self.board.get_space(chr(ord(self.pos[0])-i)+str(int(self.pos[1])-i)) == ".":
+                    moves.append("Q" + self.pos + chr(ord(self.pos[0])-i)+str(int(self.pos[1])-i))
+                elif self.board.get_space(chr(ord(self.pos[0])-i)+str(int(self.pos[1])-i)) in self.op_team:
+                    moves.append("Q" + self.pos + "x" + chr(ord(self.pos[0])-i)+str(int(self.pos[1])-i))
+                    break
+                else:
+                    break
+            else:
+                break
+        for i in range(1,8):
+            if self.check_in_bounds(chr(ord(self.pos[0])+i)+str(int(self.pos[1])-i)):
+                if self.board.get_space(chr(ord(self.pos[0])+i)+str(int(self.pos[1])-i)) == ".":
+                    moves.append("Q" + self.pos + chr(ord(self.pos[0])+i)+str(int(self.pos[1])-i))
+                elif self.board.get_space(chr(ord(self.pos[0])+i)+str(int(self.pos[1])-i)) in self.op_team:
+                    moves.append("Q" + self.pos + "x" + chr(ord(self.pos[0])+i)+str(int(self.pos[1])-i))
+                    break
+                else:
+                    break
+            else:
+                break
+        for i in range(1,8):
+            if self.check_in_bounds(chr(ord(self.pos[0])-i)+str(int(self.pos[1])+i)):
+                if self.board.get_space(chr(ord(self.pos[0])-i)+str(int(self.pos[1])+i)) == ".":
+                    moves.append("Q" + self.pos + chr(ord(self.pos[0])-i)+str(int(self.pos[1])+i))
+                elif self.board.get_space(chr(ord(self.pos[0])-i)+str(int(self.pos[1])+i)) in self.op_team:
+                    moves.append("Q" + self.pos + "x" + chr(ord(self.pos[0])-i)+str(int(self.pos[1])+i))
+                    break
+                else:
+                    break
+            else:
+                break
+        for i in range(1,8):
+            if self.check_in_bounds(chr(ord(self.pos[0])+i)+self.pos[1]):
+                if self.board.get_space(chr(ord(self.pos[0])+i)+self.pos[1]) == ".":
+                    moves.append("Q" + self.pos + chr(ord(self.pos[0])+i)+self.pos[1])
+                elif self.board.get_space(chr(ord(self.pos[0])+i)+self.pos[1]) in self.op_team:
+                    moves.append("Q" + self.pos + "x" + chr(ord(self.pos[0])+i)+self.pos[1])
+                    break
+                else:
+                    break
+            else:
+                break
+        for i in range(1,8):
+            if self.check_in_bounds(chr(ord(self.pos[0])-i)+self.pos[1]):
+                if self.board.get_space(chr(ord(self.pos[0])-i)+self.pos[1]) == ".":
+                    moves.append("Q" + self.pos + chr(ord(self.pos[0])-i)+self.pos[1])
+                elif self.board.get_space(chr(ord(self.pos[0])-i)+self.pos[1]) in self.op_team:
+                    moves.append("Q" + self.pos + "x" + chr(ord(self.pos[0])-i)+self.pos[1])
+                    break
+                else:
+                    break
+            else:
+                break
+        for i in range(1,8):
+            if self.check_in_bounds(self.pos[0]+str(int(self.pos[1])+i)):
+                if self.board.get_space(self.pos[0]+str(int(self.pos[1])+i)) == ".":
+                    moves.append("Q" + self.pos + self.pos[0]+str(int(self.pos[1])+i))
+                elif self.board.get_space(self.pos[0]+str(int(self.pos[1])+i)) in self.op_team:
+                    moves.append("Q" + self.pos + "x" + self.pos[0]+str(int(self.pos[1])+i))
+                    break
+                else:
+                    break
+            else:
+                break
+        for i in range(1,8):
+            if self.check_in_bounds(self.pos[0]+str(int(self.pos[1])-i)):
+                if self.board.get_space(self.pos[0]+str(int(self.pos[1])-i)) == ".":
+                    moves.append("Q" + self.pos + self.pos[0]+str(int(self.pos[1])-i))
+                elif self.board.get_space(self.pos[0]+str(int(self.pos[1])-i)) in self.op_team:
+                    moves.append("Q" + self.pos + "x" + self.pos[0]+str(int(self.pos[1])-i))
+                    break
+                else:
+                    break
+            else:
+                break
+        return moves
+    
+class knight(pieces):
+    def __init__(self,colour,pos,board):
+        super().__init__(colour,pos,board)
+        self.char = "\u2658" if self.colour == "w" else "\u265E"
+        self.op_team = self.b_chars if self.colour == "w" else self.w_chars
+
+    def gen_mov(self):
+        moves = []
+        if self.check_in_bounds(chr(ord(self.pos[0])+1)+str(int(self.pos[1])+2)):
+            if self.board.get_space(chr(ord(self.pos[0])+1)+str(int(self.pos[1])+2)) == ".":
+                moves.append("N" + self.pos + chr(ord(self.pos[0])+1)+str(int(self.pos[1])+2))
+            elif self.board.get_space(chr(ord(self.pos[0])+1)+str(int(self.pos[1])+2)) in self.op_team:
+                moves.append("N" + self.pos + "x" + chr(ord(self.pos[0])+1)+str(int(self.pos[1])+2))
+        if self.check_in_bounds(chr(ord(self.pos[0])+1)+str(int(self.pos[1])-2)):
+            if self.board.get_space(chr(ord(self.pos[0])+1)+str(int(self.pos[1])-2)) == ".":
+                moves.append("N" + self.pos + chr(ord(self.pos[0])+1)+str(int(self.pos[1])-2))
+            elif self.board.get_space(chr(ord(self.pos[0])+1)+str(int(self.pos[1])-2)) in self.op_team:
+                moves.append("N" + self.pos + "x" + chr(ord(self.pos[0])+1)+str(int(self.pos[1])-2))
+        if self.check_in_bounds(chr(ord(self.pos[0])-1)+str(int(self.pos[1])+2)):
+            if self.board.get_space(chr(ord(self.pos[0])-1)+str(int(self.pos[1])+2)) == ".":
+                moves.append("N" + self.pos + chr(ord(self.pos[0])-1)+str(int(self.pos[1])+2))
+            elif self.board.get_space(chr(ord(self.pos[0])-1)+str(int(self.pos[1])+2)) in self.op_team:
+                moves.append("N" + self.pos + "x" + chr(ord(self.pos[0])-1)+str(int(self.pos[1])+2))
+        if self.check_in_bounds(chr(ord(self.pos[0])-1)+str(int(self.pos[1])-2)):
+            if self.board.get_space(chr(ord(self.pos[0])-1)+str(int(self.pos[1])-2)) == ".":
+                moves.append("N" + self.pos + chr(ord(self.pos[0])-1)+str(int(self.pos[1])-2))
+            elif self.board.get_space(chr(ord(self.pos[0])-1)+str(int(self.pos[1])-2)) in self.op_team:
+                moves.append("N" + self.pos + "x" + chr(ord(self.pos[0])-1)+str(int(self.pos[1])-2))
+        if self.check_in_bounds(chr(ord(self.pos[0])+2)+str(int(self.pos[1])+1)):
+            if self.board.get_space(chr(ord(self.pos[0])+2)+str(int(self.pos[1])+1)) == ".":
+                moves.append("N" + self.pos + chr(ord(self.pos[0])+2)+str(int(self.pos[1])+1))
+            elif self.board.get_space(chr(ord(self.pos[0])+2)+str(int(self.pos[1])+1)) in self.op_team:
+                moves.append("N" + self.pos + "x" + chr(ord(self.pos[0])+2)+str(int(self.pos[1])+1))
+        if self.check_in_bounds(chr(ord(self.pos[0])+2)+str(int(self.pos[1])-1)):
+            if self.board.get_space(chr(ord(self.pos[0])+2)+str(int(self.pos[1])-1)) == ".":
+                moves.append("N" + self.pos + chr(ord(self.pos[0])+2)+str(int(self.pos[1])-1))
+            elif self.board.get_space(chr(ord(self.pos[0])+2)+str(int(self.pos[1])-1)) in self.op_team:
+                moves.append("N" + self.pos + "x" + chr(ord(self.pos[0])+2)+str(int(self.pos[1])-1))
+        if self.check_in_bounds(chr(ord(self.pos[0])-2)+str(int(self.pos[1])+1)):
+            if self.board.get_space(chr(ord(self.pos[0])-2)+str(int(self.pos[1])+1)) == ".":
+                moves.append("N" + self.pos + chr(ord(self.pos[0])-2)+str(int(self.pos[1])+1))
+            elif self.board.get_space(chr(ord(self.pos[0])-2)+str(int(self.pos[1])+1)) in self.op_team:
+                moves.append("N" + self.pos + "x" + chr(ord(self.pos[0])-2)+str(int(self.pos[1])+1))
+        if self.check_in_bounds(chr(ord(self.pos[0])-2)+str(int(self.pos[1])-1)):
+            if self.board.get_space(chr(ord(self.pos[0])-2)+str(int(self.pos[1])-1)) == ".":
+                moves.append("N" + self.pos + chr(ord(self.pos[0])-2)+str(int(self.pos[1])-1))
+            elif self.board.get_space(chr(ord(self.pos[0])-2)+str(int(self.pos[1])-1)) in self.op_team:
+                moves.append("N" + self.pos + "x" + chr(ord(self.pos[0])-2)+str(int(self.pos[1])-1))
+        return moves
+    
+class king(pieces):
+    def __init__(self,colour,pos,board):
+        super().__init__(colour,pos,board)
+        self.char = "\u2654" if self.colour == "w" else "\u265A"
+        self.op_team = self.b_chars if self.colour == "w" else self.w_chars
+
+    def gen_mov(self):
+        moves = []
+        if self.check_in_bounds(chr(ord(self.pos[0])+1)+str(int(self.pos[1]))):
+            if self.board.get_space(chr(ord(self.pos[0])+1)+str(int(self.pos[1]))) == ".":
+                moves.append("K" + self.pos + chr(ord(self.pos[0])+1)+str(int(self.pos[1])))
+            elif self.board.get_space(chr(ord(self.pos[0])+1)+str(int(self.pos[1]))) in self.op_team:
+                moves.append("K" + self.pos + "x" + chr(ord(self.pos[0])+1)+str(int(self.pos[1])))
+        if self.check_in_bounds(chr(ord(self.pos[0])-1)+str(int(self.pos[1]))):
+            if self.board.get_space(chr(ord(self.pos[0])-1)+str(int(self.pos[1]))) == ".":
+                moves.append("K" + self.pos + chr(ord(self.pos[0])-1)+str(int(self.pos[1])))
+            elif self.board.get_space(chr(ord(self.pos[0])-1)+str(int(self.pos[1]))) in self.op_team:
+                moves.append("K" + self.pos + "x" + chr(ord(self.pos[0])-1)+str(int(self.pos[1])))
+        if self.check_in_bounds(chr(ord(self.pos[0]))+str(int(self.pos[1])+1)):
+            if self.board.get_space(chr(ord(self.pos[0]))+str(int(self.pos[1])+1)) == ".":
+                moves.append("K" + self.pos + chr(ord(self.pos[0]))+str(int(self.pos[1])+1))
+            elif self.board.get_space(chr(ord(self.pos[0]))+str(int(self.pos[1])+1)) in self.op_team:
+                moves.append("K" + self.pos + "x" + chr(ord(self.pos[0]))+str(int(self.pos[1])+1))
+        if self.check_in_bounds(chr(ord(self.pos[0]))+str(int(self.pos[1])-1)):
+            if self.board.get_space(chr(ord(self.pos[0]))+str(int(self.pos[1])-1)) == ".":
+                moves.append("K" + self.pos + chr(ord(self.pos[0]))+str(int(self.pos[1])-1))
+            elif self.board.get_space(chr(ord(self.pos[0]))+str(int(self.pos[1])-1)) in self.op_team:
+                moves.append("K" + self.pos + "x" + chr(ord(self.pos[0]))+str(int(self.pos[1])-1))
+        if self.check_in_bounds(chr(ord(self.pos[0])+1)+str(int(self.pos[1])+1)):
+            if self.board.get_space(chr(ord(self.pos[0])+1)+str(int(self.pos[1])+1)) == ".":
+                moves.append("K" + self.pos + chr(ord(self.pos[0])+1)+str(int(self.pos[1])+1))
+            elif self.board.get_space(chr(ord(self.pos[0])+1)+str(int(self.pos[1])+1)) in self.op_team:
+                moves.append("K" + self.pos + "x" + chr(ord(self.pos[0])+1)+str(int(self.pos[1])+1))
+        if self.check_in_bounds(chr(ord(self.pos[0])+1)+str(int(self.pos[1])-1)):
+            if self.board.get_space(chr(ord(self.pos[0])+1)+str(int(self.pos[1])-1)) == ".":
+                moves.append("K" + self.pos + chr(ord(self.pos[0])+1)+str(int(self.pos[1])-1))
+            elif self.board.get_space(chr(ord(self.pos[0])+1)+str(int(self.pos[1])-1)) in self.op_team:
+                moves.append("K" + self.pos + "x" + chr(ord(self.pos[0])+1)+str(int(self.pos[1])-1))
+        if self.check_in_bounds(chr(ord(self.pos[0])-1)+str(int(self.pos[1])+1)):
+            if self.board.get_space(chr(ord(self.pos[0])-1)+str(int(self.pos[1])+1)) == ".":
+                moves.append("K" + self.pos + chr(ord(self.pos[0])-1)+str(int(self.pos[1])+1))
+            elif self.board.get_space(chr(ord(self.pos[0])-1)+str(int(self.pos[1])+1)) in self.op_team:
+                moves.append("K" + self.pos + "x" + chr(ord(self.pos[0])-1)+str(int(self.pos[1])+1))
+        if self.check_in_bounds(chr(ord(self.pos[0])-1)+str(int(self.pos[1])-1)):
+            if self.board.get_space(chr(ord(self.pos[0])-1)+str(int(self.pos[1])-1)) == ".":
+                moves.append("K" + self.pos + chr(ord(self.pos[0])-1)+str(int(self.pos[1])-1))
+            elif self.board.get_space(chr(ord(self.pos[0])-1)+str(int(self.pos[1])-1)) in self.op_team:
+                moves.append("K" + self.pos + "x" + chr(ord(self.pos[0])-1)+str(int(self.pos[1])-1))
+        return moves
