@@ -7,11 +7,11 @@ def main():
   game_board = Board()
   print(game_board.create_board_string())
   for i in range(50):
-    r = random.choice(game_board.return_moves())
-    game_board.move_piece(r)
-    print(game_board.create_board_string())
-    input()
+    print(game_board.check_for_check())
+    move = input("Enter a move: ")
+    game_board.move_piece(move)
     os.system('cls' if os.name == 'nt' else 'clear')
+    print(game_board.create_board_string(flipped=(i+1)%2))
 
   
 

@@ -31,7 +31,7 @@ class Board:
         self.board_state[6] = [w_charset[pawn] for pawn in pawns]            #Set before the piece arrangement so that the pawns are in the correct order
         self.board_state[7] = [w_charset[piece] for piece in pieceArrangement]
 
-        wp1 = pawn("w",self,"a2")
+        wp1 = pawn("w",self,"a2") #create objects for each piece
         wp2 = pawn("w",self,"b2")
         wp3 = pawn("w",self,"c2")
         wp4 = pawn("w",self,"d2")
@@ -65,7 +65,7 @@ class Board:
         bq = queen("b",self,"d8")
         bk = king("b",self,"e8")
 
-        self.w_team = [wp1,wp2,wp3,wp4,wp5,wp6,wp7,wp8,wr1,wr2,wn1,wn2,wb1,wb2,wq,wk]
+        self.w_team = [wp1,wp2,wp3,wp4,wp5,wp6,wp7,wp8,wr1,wr2,wn1,wn2,wb1,wb2,wq,wk]#store all the pieces in a list
         self.b_team = [bp1,bp2,bp3,bp4,bp5,bp6,bp7,bp8,br1,br2,bn1,bn2,bb1,bb2,bq,bk]
 
         
@@ -76,13 +76,13 @@ class Board:
         if not flipped:
             for row_index in range(len(self.board_state)):
                 for piece_index in range(len(self.board_state[row_index])):
-                    output = output + self.board_state[7-row_index][piece_index] + " "
+                    output = output + self.board_state[7-row_index][7-piece_index] + "  "
                 output += "\n"
             #output = output[::-1]
             return output
         for row_index in range(len(self.board_state)):
             for piece_index in range(len(self.board_state[row_index])):
-                output = output + self.board_state[row_index][piece_index] + " "
+                output = output + self.board_state[row_index][piece_index] + "  "
             output += "\n"
         return output
 		
@@ -90,9 +90,51 @@ class Board:
         return self.create_board_string(flipped)
     
     def return_moves(self):
+        if self.turn:#white's turn
+            return list(filter(None, sum([piece.gen_mov() for piece in self.w_team],[]))) #returns a list of all possible moves for the team that is currently moving. can currently move into check.
+        return list(filter(None, sum([piece.gen_mov() for piece in self.b_team],[])))#black = False, white = True
+    
+    def check_for_check(self):
+        moves = []
         if self.turn:
-            return list(filter(None, sum([piece.gen_mov() for piece in self.w_team],[])))
-        return list(filter(None, sum([piece.gen_mov() for piece in self.b_team],[])))
+            king = self.w_team[-1]
+        else:
+            king = self.b_team[-1]
+        in_check = False
+        
+        for move in self.return_moves():
+            temp_board = Board()
+            temp_board.board_state = [[col for col in row] for row in self.board_state]
+            start,capture,end,promotion = re.split(r"([a-h][1-9])([x]?)([a-h][1-9])([KQNBR]?)",move)[1:-1]
+            alphabet = "abcdefgh"
+            temp_board.board_state[int(end[1])-1][alphabet.index(end[0])] = "X"#self.board_state[int(start[1])-1][alphabet.index(start[0])] #move the piece
+            temp_board.board_state[int(start[1])-1][alphabet.index(start[0])] = "."
+            temp_board.turn = not self.turn
+            temp_board.w_team = [piece for piece in self.w_team]
+            temp_board.b_team = [piece for piece in self.b_team]
+            if capture and self.turn:
+                    for piece in self.b_team:
+                        if piece.pos == end:
+                            temp_board.b_team.remove(piece)#remove any piece that is captured, so that they do not generate moves
+                            break
+            if capture and not self.turn:
+                    for piece in self.w_team:
+                        if piece.pos == end:
+                            temp_board.w_team.remove(piece)
+                            break
+
+            in_check = False
+            opp_movs = temp_board.return_moves()
+            for opp_move in opp_movs:
+                start,capture,end,_ = re.split(r"([a-h][1-9])([x]?)([a-h][1-9])([KQNBR]?)",opp_move)[1:-1]
+                if end == king.pos:
+                    in_check = True
+                    break
+            if not in_check:
+                moves.append(move)
+        return moves
+
+
     
     def validate_move(self,move):
         if move in self.return_moves():
@@ -102,25 +144,28 @@ class Board:
     def move_piece(self,move):
         if self.validate_move(move):
             
-            start,capture,end,promotion = re.split(r"([a-h][1-9])([x]?)([a-h][1-9])([KQNBR]?)",move)[1:-1]
+            start,capture,end,promotion = re.split(r"([a-h][1-9])([x]?)([a-h][1-9])([KQNBR]?)",move)[1:-1] #split the move into its components.
+            #temp_board_state = [[col for col in row] for row in self.board_state] #create a temporary board state to check for check
+            
 
-            if self.turn:
+            if self.turn:#white
                 for piece in self.w_team:
                     if piece.pos == start:
                         piece_to_move = piece
-                piece_to_move.pos = end
+                        break #find the object that is being moved
+                piece_to_move.pos = end #change the position of the object
                 alphabet = "abcdefgh"
                 self.board_state[int(end[1])-1][alphabet.index(end[0])] = piece_to_move.char
-                self.board_state[int(start[1])-1][alphabet.index(start[0])] = "."
+                self.board_state[int(start[1])-1][alphabet.index(start[0])] = "." #update the board state
                 
                 
 
                 if capture:
                     for piece in self.b_team:
                         if piece.pos == end:
-                            self.b_team.remove(piece)
+                            self.b_team.remove(piece)#remove any piece that is captured, so that they do not generate moves
                             break
-                if promotion:
+                if promotion:#if promoted, replace the pawn with the promoted piece
                     self.w_team.remove(piece)
                     if promotion == "Q":
                         q = queen("w",self,end)
@@ -138,7 +183,10 @@ class Board:
                         n = knight("w",self,end)
                         self.w_team.append(n)
                         self.board_state[int(end[1])-1][alphabet.index(end[0])] = n.char
-            else:
+                        
+                
+                        
+            else:#same,but for black team
                 for piece in self.b_team:
                     if piece.pos == start:
                         piece_to_move = piece
@@ -169,9 +217,11 @@ class Board:
                         n = knight("b",self,end)
                         self.b_team.append(n)
                         self.board_state[int(end[1])-1][alphabet.index(end[0])] = n.char
+
+                self.check_for_check()
                 
-            self.turn = not self.turn
-            return True
+        self.turn = not self.turn#change the turn
+            
         return False
 
     def get_space(self,string):
@@ -188,7 +238,7 @@ class pieces:
         self.pos = pos
         self.taken = False
         self.b_chars = ["♖", "♘", "♗", "♕", "♔", "♙" ] #this is needed because of the stupid way i wrote the move generation
-        self.w_chars = ["♜", "♞", "♝", "♛", "♚", "♟" ]
+        self.w_chars = ["♜", "♞", "♝", "♛", "♚", "♟" ] #for some reason it registers the unicode chars as different to the symbols, so i have to do this
 
     def __str__(self):
         return self.char
@@ -342,7 +392,7 @@ class bishop(pieces):
 
     def gen_mov(self):
         moves = []
-        for i in range(1,8): #you can gather how this works
+        for i in range(1,8): #you can gather how this works. I can't comment it.
             if self.check_in_bounds(chr(ord(self.pos[0])+i)+str(int(self.pos[1])+i)):
                 if self.board.get_space(chr(ord(self.pos[0])+i)+str(int(self.pos[1])+i)) == ".":
                     moves.append("B" + self.pos + chr(ord(self.pos[0])+i)+str(int(self.pos[1])+i))
@@ -396,7 +446,7 @@ class queen(pieces):
 
     def gen_mov(self):
         moves = []
-        for i in range(1,8): #you can gather how this works
+        for i in range(1,8): #you can gather how this works. basically the same as the rook and bishop
             if self.check_in_bounds(chr(ord(self.pos[0])+i)+str(int(self.pos[1])+i)):
                 if self.board.get_space(chr(ord(self.pos[0])+i)+str(int(self.pos[1])+i)) == ".":
                     moves.append("Q" + self.pos + chr(ord(self.pos[0])+i)+str(int(self.pos[1])+i))
